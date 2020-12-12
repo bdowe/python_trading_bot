@@ -431,8 +431,7 @@ class PyRobot():
 
         new_prices = []
 
-        if not symbols:
-            symbols = self.portfolio.positions
+        symbols = symbols or self.portfolio.positions
 
         for symbol in symbols:
 
