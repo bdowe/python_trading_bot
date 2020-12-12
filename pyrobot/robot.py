@@ -103,10 +103,7 @@ class PyRobot():
 
         right_now = datetime.utcnow().timestamp()
 
-        if market_start_time >= right_now >= pre_market_start_time:
-            return True
-        else:
-            return False
+        return market_start_time >= right_now >= pre_market_start_time
 
     @property
     def post_market_open(self):
@@ -142,10 +139,7 @@ class PyRobot():
 
         right_now = datetime.utcnow().timestamp()
 
-        if post_market_end_time >= right_now >= market_end_time:
-            return True
-        else:
-            return False
+        return post_market_end_time >= right_now >= market_end_time
 
     @property
     def regular_market_open(self):
@@ -181,10 +175,7 @@ class PyRobot():
 
         right_now = datetime.utcnow().timestamp()
 
-        if market_end_time >= right_now >= market_start_time:
-            return True
-        else:
-            return False
+        return market_end_time >= right_now >= market_start_time
 
     def create_portfolio(self) -> Portfolio:
         """Create a new portfolio.
