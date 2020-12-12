@@ -1,10 +1,6 @@
 import numpy as np
 import pandas as pd
-
-from typing import Any
-from typing import Dict
-from typing import Union
-
+from typing import Any, Dict, Union
 from pyrobot.stock_frame import StockFrame
 
 class Indicators():

@@ -1,12 +1,7 @@
 import pandas as pd
-
-from typing import List
-from typing import Dict
-from typing import Union
-
+from typing import List, Dict, Union
 from pandas.core.groupby import DataFrameGroupBy
-from pandas.core.window import RollingGroupby
-from pandas.core.window import Window
+from pandas.core.window import RollingGroupby, Window
 
 
 class StockFrame():

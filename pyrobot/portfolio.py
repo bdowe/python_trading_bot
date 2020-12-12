@@ -1,11 +1,6 @@
 import numpy as np
-
 from pandas import DataFrame
-from typing import Tuple
-from typing import List
-from typing import Optional
-
-
+from typing import Tuple, List, Optional
 from pyrobot.stock_frame import StockFrame
 from td.client import TDClient
 

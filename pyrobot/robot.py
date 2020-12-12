@@ -3,13 +3,8 @@ import time as time_true
 import pathlib
 import pandas as pd
 
-from datetime import datetime
-from datetime import timezone
-from datetime import timedelta
-
-from typing import List
-from typing import Dict
-from typing import Union
+from datetime import datetime, timezone, timedelta
+from typing import List, Dict, Union
 
 from pyrobot.trades import Trade
 from pyrobot.portfolio import Portfolio
