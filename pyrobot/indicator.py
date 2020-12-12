@@ -56,10 +56,7 @@ class Indicators():
         {dict} -- Either all of the indicators or the specified indicator.
         """
 
-        if indicator and indicator in self._indicator_signals:
-            return self._indicator_signals[indicator]
-        else:      
-            return self._indicator_signals
+        return self._indicator_signals[indicator] if indicator and indicator in self._indicator_signals else self._indicator_signals
     
     def set_indicator_signal(self, indicator: str, buy: float, sell: float, condition_buy: Any, condition_sell: Any, 
                              buy_max: float = None, sell_max: float = None, condition_buy_max: Any = None, condition_sell_max: Any = None) -> None:
@@ -173,10 +170,7 @@ class Indicators():
         {bool} -- `True` if the data frame is a `pd.MultiIndex` object. `False` otherwise.
         """
 
-        if isinstance(self._frame.index, pd.MultiIndex):
-            return True
-        else:
-            return False
+        return isinstance(self._frame.index, pd.MultiIndex)
 
     def change_in_price(self, column_name: str = 'change_in_price') -> pd.DataFrame:
         """Calculates the Change in Price.
@@ -862,7 +856,12 @@ class Indicators():
         return self._frame
 
     def kst_oscillator(self, r1: int, r2: int, r3: int, r4: int, n1: int, n2: int, n3: int, n4: int, column_name: str = 'kst_oscillator') -> pd.DataFrame:
-        """Calculates the Mass Index indicator.
+        """
+        TODO: These comments are inaccurate for this function
+        - This function itself doesn't seem complete 
+        - need to research further
+        
+        Calculates the Mass Index indicator.
         Arguments:
         ----
         period {int} -- The number of periods to use when calculating 
