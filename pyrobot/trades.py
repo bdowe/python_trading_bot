@@ -1,8 +1,7 @@
 import json
 from datetime import datetime
 
-from typing import List
-from typing import Dict
+from typing import List, Dict
 
 from td.client import TDClient
 
@@ -132,34 +131,19 @@ class Trade():
         self.price = price
 
         # If it's a stop limit order or stop order, set the stop price.
-        if self.is_stop_order or self.is_stop_limit_order:
-            self.stop_price = price
-        else:
-            self.stop_price = 0.0
+        self.stop_price = price if self.is_stop_order or self.is_stop_limit_order else 0.0
 
         # If it's a stop limit order set the stop limit price.
-        if self.is_stop_limit_order:
-            self.stop_limit_price = stop_limit_price
-        else:
-            self.stop_limit_price = 0.0
+        self.stop_limit_price = stop_limit_price if self.is_stop_limit_order else 0.0
 
         # If it's a limit price set the limit price.
-        if self.is_limit_order:
-            self.limit_price = price
-        else:
-            self.limit_price = 0.0
+        self.limit_price = price if self.is_limit_order else 0.0
 
         # Set the enter or exit state.
-        if self.enter_or_exit == 'enter':
-            self.enter_or_exit_opposite = 'exit'
-        if self.enter_or_exit == 'exit':
-            self.enter_or_exit_opposite = 'enter'
+        self.enter_or_exit_opposite = 'exit' if self.enter_or_exit == 'enter' else 'enter'
 
         # Set the side state.
-        if self.side == 'long':
-            self.side_opposite = 'short'
-        if self.side == 'short':
-            self.side_opposite = 'long'
+        self.side_opposite = 'short' if self.side == 'long' else 'long'
 
         return self.order
 
@@ -241,16 +225,10 @@ class Trade():
         """
 
         # Validate the Side.
-        if side and side not in ['buy', 'sell', 'sell_short', 'buy_to_cover', 'sell_to_close', 'buy_to_open']:
-            raise ValueError(
-                "The side you have specified is not valid. Please choose a valid side: ['buy', 'sell', 'sell_short', 'buy_to_cover','sell_to_close', 'buy_to_open']"
-            )
+        assert side in ['buy', 'sell', 'sell_short', 'buy_to_cover', 'sell_to_close', 'buy_to_open'] or not side
 
         # Set the Order.
-        if side:
-            self.order['orderLegCollection'][leg_id]['instruction'] = side.upper()
-        else:
-            self.order['orderLegCollection'][leg_id]['instruction'] = self.order_instructions[self.enter_or_exit][self.side_opposite]
+        self.order['orderLegCollection'][leg_id]['instruction'] = self.order_instructions[self.enter_or_exit][self.side_opposite] if not side else side.upper()
 
     def add_box_range(self, profit_size: float = 0.00, stop_size: float = 0.00,
                       stop_percentage: bool = False,  profit_percentage: bool = False,
@@ -318,20 +296,12 @@ class Trade():
 
         price = self.grab_price()
 
-        if percentage:
-            adjustment = 1.0 - stop_size
-            new_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=True
-            )
-        else:
-            adjustment = -stop_size
-            new_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=False
-            )
+        adjustment = 1.0 - stop_size if percentage else -stop_size
+        new_price = self._calculate_new_price(
+            price=price,
+            adjustment=adjustment,
+            percentage=percentage
+        )
 
         stop_loss_order = {
             "orderType": "STOP",
@@ -382,36 +352,19 @@ class Trade():
         price = self.grab_price()
 
         # Calculate the Stop Price.
-        if stop_percentage:
-            adjustment = 1.0 - stop_size
-            stop_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=True
-            )
-        else:
-            adjustment = -stop_size
-            stop_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=False
-            )
+        adjustment = 1.0 - stop_size if stop_percentage else -stop_size
+        stop_price = self._calculate_new_price(
+            price=price,
+            adjustment=adjustment,
+            percentage=stop_percentage
+        )
 
-        # Calculate the Limit Price.
-        if limit_percentage:
-            adjustment = 1.0 - limit_size
-            limit_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=True
-            )
-        else:
-            adjustment = -limit_size
-            limit_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=False
-            )
+        adjustment = 1.0 - limit_size if limit_percentage else -limit_size
+        limit_price = self._calculate_new_price(
+            price=price,
+            adjustment=adjustment,
+            percentage=limit_percentage
+        )
 
         # Add the order.
         stop_limit_order = {
@@ -451,18 +404,10 @@ class Trade():
         {float} -- The new price after the adjustment has been made.
         """
 
-        if percentage:
-            new_price = price * adjustment
-        else:
-            new_price = price + adjustment
+        new_price = price * adjustment if percentage else price + adjustment
 
-        # For orders below $1.00, can only have 4 decimal places.
-        if new_price < 1:
-            new_price = round(new_price, 4)
-
-        # For orders above $1.00, can only have 2 decimal places.
-        else:
-            new_price = round(new_price, 2)
+        # For orders below $1.00, can only have 4 decimal places, else 2 decimal places.
+        new_price = round(new_price, 4 if new_price < 1 else 2)
 
         return new_price
     
@@ -475,22 +420,8 @@ class Trade():
         """        
 
         # We need to basis to calculate off of. Use the price.
-        if self.order_type == 'mkt':
-
-            quote = self._td_client.get_quotes(instruments=[self.symbol])
-
-            # Have to make a call to Get Quotes.
-            price = quote[self.symbol]['lastPrice']
-
-        elif self.order_type == 'lmt':
-            price = self.price
-        
-        else:
-
-            quote = self._td_client.get_quotes(instruments=[self.symbol])
-
-            # Have to make a call to Get Quotes.
-            price = quote[self.symbol]['lastPrice']
+        quote = self._td_client.get_quotes(instruments=[self.symbol])
+        price = self.price if self.order_type == 'lmt' else quote[self.symbol]['lastPrice']
         
         return round(price, 2)
 
@@ -516,20 +447,12 @@ class Trade():
         price = self.grab_price()
 
         # Calculate the new price.
-        if percentage:
-            adjustment = 1.0 + profit_size
-            new_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=True
-            )
-        else:
-            adjustment = profit_size
-            new_price = self._calculate_new_price(
-                price=price,
-                adjustment=adjustment,
-                percentage=False
-            )
+        adjustment = 1.0 + profit_size if percentage else profit_size
+        new_price = self._calculate_new_price(
+            price=price,
+            adjustment=adjustment,
+            percentage=percentage
+        )
 
         # Build the order.
         take_profit_order = {
@@ -556,7 +479,7 @@ class Trade():
 
         return True
 
-    def add_one_cancels_other(self, orders: List[Dict] = None) -> Dict:
+    def add_one_cancels_other(self, orders: List[Dict] = None) -> bool:
         """Add's a One Cancel's Other Order
         Arguments:
         ----
@@ -590,7 +513,9 @@ class Trade():
         # Set it so we know it's a One Cancels Other.
         self._one_cancels_other = True
 
-    def _convert_to_trigger(self):
+        return True
+
+    def _convert_to_trigger(self) -> None:
         """Converts a regular order to a trigger order.
         Overview:
         ----
@@ -627,11 +552,8 @@ class Trade():
             are ['am', 'pm', 'normal', 'seamless']
         """
 
-        if session in ['am', 'pm', 'normal', 'seamless']:
-            self.order['session'] = session.upper()
-        else:
-            raise ValueError(
-                'Invalid session, choose either am, pm, normal, or seamless')
+        assert session in ['am', 'pm', 'normal', 'seamless']
+        self.order['session'] = session.upper()
 
     @property
     def order_response(self) -> dict:
@@ -661,21 +583,19 @@ class Trade():
         """
 
         # If we have an order, then generate it.
-        if self.order:
-
-            order_id = "{symbol}_{side}_{enter_or_exit}_{timestamp}"
-
-            order_id = order_id.format(
-                symbol=self.symbol,
-                side=self.side,
-                enter_or_exit=self.enter_or_exit,
-                timestamp=datetime.now().timestamp()
-            )
-
-            return order_id
-
-        else:
+        if not self.order:
             return ""
+
+        order_id = "{symbol}_{side}_{enter_or_exit}_{timestamp}"
+
+        order_id = order_id.format(
+            symbol=self.symbol,
+            side=self.side,
+            enter_or_exit=self.enter_or_exit,
+            timestamp=datetime.now().timestamp()
+        )
+
+        return order_id
 
     def add_leg(self, order_leg_id: int, symbol: str, quantity: int, asset_type: str, sub_asset_type: str = None) -> List[dict]:
         """Adds an instrument to a trade.
@@ -694,9 +614,13 @@ class Trade():
         """
 
         # Define the leg.
-        leg = {}
-        leg['instrument']['symbol'] = symbol
-        leg['instrument']['assetType'] = asset_type
+        leg = {
+            'instrument': {
+                'symbol': symbol,
+                'assetType': asset_type
+            },
+            'quantity': quantity
+        }
         leg['quantity'] = quantity
 
         if sub_asset_type:
@@ -745,7 +669,7 @@ class Trade():
 
         if price_type == 'price':
             self.order['price'] = new_price
-        elif price_type == 'stop-price' and self.is_stop_order:
+        elif price_type == 'stop-price' and self.is_stop_order or price_type == 'stop-limit-stop-price' and self.is_stop_limit_order:
             self.order['stopPrice'] = new_price
             self.stop_price = new_price
         elif price_type == 'limit-price' and self.is_limit_order:
@@ -754,48 +678,18 @@ class Trade():
         elif price_type == 'stop-limit-limit-price' and self.is_stop_limit_order:
             self.order['price'] = new_price
             self.stop_limit_price = new_price
-        elif price_type == 'stop-limit-stop-price' and self.is_stop_limit_order:
-            self.order['stopPrice'] = new_price
-            self.stop_price = new_price
 
     @property
     def is_stop_order(self) -> bool:
-        """Specifies whether the order is a Stop Loss Order.
-        Returns:
-        ----
-        bool: `True` if the order is a Stop order, `False` otherwise.
-        """
-
-        if self.order_type != 'stop':
-            return False
-        else:
-            return True
+        return self.order_type == 'stop'
 
     @property
     def is_stop_limit_order(self) -> bool:
-        """Specifies whether the order is a Stop Limit Order.
-        Returns:
-        ----
-        bool: `True` if the order is a Stop Limit order, `False` otherwise.
-        """
-
-        if self.order_type != 'stop-lmt':
-            return False
-        else:
-            return True
+        return self.order_type == 'stop-lmt'
 
     @property
     def is_limit_order(self) -> bool:
-        """Specifies whether the order is a Limit Order.
-        Returns:
-        ----
-        bool: `True` if the order is a Limit order, `False` otherwise.
-        """
-
-        if self.order_type != 'lmt':
-            return False
-        else:
-            return True
+        return self.order_type == 'lmt'
     
     @property
     def is_trigger_order(self) -> bool:
@@ -806,10 +700,7 @@ class Trade():
             `False` otherwise.
         """
 
-        if self._triggered_added:
-            return True
-        else:
-            return False
+        return self._triggered_added
 
     def _process_order_response(self) -> None:
         """Processes an order response, after is has been submitted."""        
