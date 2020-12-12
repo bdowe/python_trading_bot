@@ -142,11 +142,7 @@ class Portfolio():
         self.positions[symbol]['purchase_price'] = purchase_price
         self.positions[symbol]['purchase_date'] = purchase_date
         self.positions[symbol]['asset_type'] = asset_type
-
-        if purchase_date:
-            self.positions[symbol]['ownership_status'] = True
-        else:
-            self.positions[symbol]['ownership_status'] = False
+        self.positions[symbol]['ownership_status'] = purchase_date is not None
 
         return self.positions[symbol]
 
@@ -197,6 +193,8 @@ class Portfolio():
         if len(self.positions.keys()) > 0:
             for symbol in self.positions:
                 total_allocation[self.positions[symbol]['asset_type']].append(self.positions[symbol])
+        
+        return total_allocation
 
     def portfolio_variance(self, weights: dict, covariance_matrix: DataFrame) -> dict:
 
@@ -357,10 +355,7 @@ class Portfolio():
                 True
         """
 
-        if symbol in self.positions:
-            return True
-        else:
-            return False
+        return symbol in self.positions
 
     def get_ownership_status(self, symbol: str) -> bool:
         """Gets the ownership status for a position in the portfolio.
@@ -374,8 +369,7 @@ class Portfolio():
 
         if self.in_portfolio(symbol=symbol) and self.positions[symbol]['ownership_status']:
             return self.positions[symbol]['ownership_status']
-        else:
-            return False
+        return False
 
     def set_ownership_status(self, symbol: str, ownership: bool) -> None:
         """Sets the ownership status for a position in the portfolio.
@@ -432,10 +426,7 @@ class Portfolio():
         else:
             raise KeyError("The Symbol you tried to request does not exist.")
 
-        if (purchase_price <= current_price):
-            return True
-        elif (purchase_price > current_price):
-            return False
+        return purchase_price <= current_price
 
     def projected_market_value(self, current_prices: dict) -> dict:
         """Returns the Projected market value for all the positions in the portfolio.
