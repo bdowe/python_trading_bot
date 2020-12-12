@@ -1,6 +1,6 @@
-numpy
-pandas
+numpy==1.19.0
+pandas==1.0.5
+td-ameritrade-python-api>=0.3.0
+typing
 matplotlib
 jupyter
-td
-typing
