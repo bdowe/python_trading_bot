@@ -67,7 +67,7 @@ class StockFrame():
 
         # If we don't a symbols group, then create it.
         if not self._symbol_groups:
-            self.symbol_groups
+            self._symbol_groups
 
         self._symbol_rolling_groups: RollingGroupby = self._symbol_groups.rolling(
             size
