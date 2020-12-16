@@ -188,6 +188,21 @@ class Indicators():
 
         return self._frame
 
+    def percent_change_in_price(self, column_name: str = '%_change_in_price') -> pd.DataFrame:
+        locals_data = locals()
+        del locals_data['self']
+
+        self._current_indicators[column_name] = {}
+        self._current_indicators[column_name]['args'] = locals_data
+        self._current_indicators[column_name]['func'] = self.percent_change_in_price
+
+        self._frame[column_name] = self._price_groups['close'].transform(
+            lambda x: x.pct_change()
+        )
+
+        return self._frame
+
+
     def rsi(self, period: int, method: str = 'wilders', column_name: str = 'rsi') -> pd.DataFrame:
         """Calculates the Relative Strength Index (RSI).
         Arguments:
@@ -286,6 +301,8 @@ class Indicators():
         locals_data = locals()
         del locals_data['self']
 
+        column_name = f"{column_name}_{str(period)}"
+
         self._current_indicators[column_name] = {}
         self._current_indicators[column_name]['args'] = locals_data
         self._current_indicators[column_name]['func'] = self.sma
@@ -318,6 +335,10 @@ class Indicators():
             >>> indicator_client = Indicators(price_data_frame=price_data_frame)
             >>> indicator_client.ema(period=50, alpha=1/50)
         """
+
+        # Todo - fix / troubleshoot - window doesn't appear to be calculating properly
+
+        column_name = f"{column_name}_{str(period)}"
 
         locals_data = locals()
         del locals_data['self']
