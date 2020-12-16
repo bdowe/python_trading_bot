@@ -1,0 +1,6 @@
+FROM python:3.8
+RUN pip install flask pyopenssl
+EXPOSE 5000
+WORKDIR /app
+COPY ./flask_app.py /app
+CMD python flask_app.py
