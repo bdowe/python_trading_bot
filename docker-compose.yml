@@ -8,3 +8,10 @@ services:
       - 8080:8080
     volumes:
       - ./:/app
+  
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    ports:
+      - 5000:5000
