@@ -1,3 +1,4 @@
 .vscode/
-configs/
 .ipynb_checkpoints/
+configs/
+env/
